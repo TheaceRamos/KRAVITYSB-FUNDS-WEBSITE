@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>KRAVITYSB — Sign Up</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRAVITYSB – Sign Up</title>
 
   <style>
     * {
@@ -28,82 +28,90 @@
       background: white;
       border-radius: 18px;
       padding: 32px 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
     }
 
     .brand {
       text-align: center;
-      font-size: 28px;
-      font-weight: 700;
+      font-size: 25px;
+      font-weight: 800;
       margin-bottom: 8px;
+    }
+
+    .brand span {
+      color: #159b69;
     }
 
     .subtitle {
       text-align: center;
-      color: #66706f;
-      margin-bottom: 25px;
+      color: #68716f;
+      margin-bottom: 28px;
     }
 
     label {
       display: block;
       margin: 14px 0 7px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      border: 1px solid #ccd4d2;
+      padding: 13px;
+      border: 1px solid #d5ddda;
       border-radius: 10px;
-      font-size: 16px;
+      font-size: 15px;
       outline: none;
     }
 
     input:focus {
-      border-color: #55bdb5;
+      border-color: #159b69;
     }
 
     button {
       width: 100%;
       margin-top: 22px;
-      padding: 15px;
-      border: 0;
+      padding: 14px;
+      border: none;
       border-radius: 10px;
-      background: #55bdb5;
+      background: #159b69;
       color: white;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    .login {
-      text-align: center;
-      margin-top: 20px;
-      color: #66706f;
+    button:disabled {
+      opacity: 0.6;
     }
 
-    .login a {
-      color: #279b93;
-      font-weight: 700;
+    #message {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 9px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .links {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    a {
+      color: #159b69;
       text-decoration: none;
+      font-weight: 700;
     }
 
     .back {
       display: block;
       text-align: center;
-      margin-top: 18px;
-      color: #66706f;
-      text-decoration: none;
-    }
-
-    .message {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #fff3cd;
-      color: #664d03;
-      text-align: center;
+      margin-top: 16px;
+      color: #68716f;
+      font-weight: normal;
     }
   </style>
 </head>
@@ -112,7 +120,9 @@
 
   <div class="signup-card">
 
-    <div class="brand">KRAVITYSB</div>
+    <div class="brand">
+      KRAVITYSB <span>USDT</span>
+    </div>
 
     <div class="subtitle">
       Create your account
@@ -120,10 +130,11 @@
 
     <form id="signupForm">
 
-      <label for="name">Full Name</label>
+      <label for="fullName">Full Name</label>
       <input
         type="text"
-        id="name"
+        id="fullName"
+        name="fullName"
         placeholder="Enter your full name"
         required
       >
@@ -132,6 +143,7 @@
       <input
         type="email"
         id="email"
+        name="email"
         placeholder="Enter your email"
         required
       >
@@ -140,7 +152,8 @@
       <input
         type="password"
         id="password"
-        placeholder="Create a password"
+        name="password"
+        placeholder="At least 8 characters"
         minlength="8"
         required
       >
@@ -149,20 +162,21 @@
       <input
         type="password"
         id="confirmPassword"
+        name="confirmPassword"
         placeholder="Confirm your password"
         minlength="8"
         required
       >
 
-      <button type="submit">
+      <button type="submit" id="signupButton">
         Create Account
       </button>
 
-      <div class="message" id="message"></div>
-
     </form>
 
-    <div class="login">
+    <div id="message"></div>
+
+    <div class="links">
       Already have an account?
       <a href="login.html">Login</a>
     </div>
@@ -174,26 +188,76 @@
   </div>
 
   <script>
-    document.getElementById("signupForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    const form = document.getElementById("signupForm");
+    const button = document.getElementById("signupButton");
+    const message = document.getElementById("message");
 
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      const confirmPassword =
-        document.getElementById("confirmPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
 
-      const message = document.getElementById("message");
+      message.style.display = "none";
 
       if (password !== confirmPassword) {
-        message.textContent = "Passwords do not match.";
-        message.style.display = "block";
+        showMessage("Passwords do not match.", false);
         return;
       }
 
-      message.textContent =
-        "Account system will be connected next.";
+      if (password.length < 8) {
+        showMessage("Password must be at least 8 characters.", false);
+        return;
+      }
 
-      message.style.display = "block";
+      button.disabled = true;
+      button.textContent = "Creating Account...";
+
+      try {
+        const response = await fetch("/api/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            fullName,
+            email,
+            password,
+            confirmPassword
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage("Account created successfully! Redirecting to login...", true);
+
+          form.reset();
+
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+
+        } else {
+          showMessage(data.message || "Unable to create account.", false);
+        }
+
+      } catch (error) {
+        showMessage("Connection error. Please try again.", false);
+      }
+
+      button.disabled = false;
+      button.textContent = "Create Account";
     });
+
+    function showMessage(text, success) {
+      message.textContent = text;
+      message.style.display = "block";
+      message.style.background = success ? "#e7f8f0" : "#fdecec";
+      message.style.color = success ? "#087443" : "#b42318";
+    }
   </script>
 
 </body>
