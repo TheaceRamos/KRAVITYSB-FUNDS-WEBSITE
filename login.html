@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>KRAVITYSB — Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRAVITYSB – Login</title>
 
   <style>
     * {
@@ -28,86 +28,90 @@
       background: white;
       border-radius: 18px;
       padding: 32px 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
     }
 
     .brand {
       text-align: center;
       font-size: 28px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 8px;
+    }
+
+    .brand span {
+      color: #159b69;
     }
 
     .subtitle {
       text-align: center;
-      color: #66706f;
-      margin-bottom: 30px;
+      color: #68716f;
+      margin-bottom: 28px;
     }
 
     label {
       display: block;
-      margin: 16px 0 7px;
-      font-weight: 600;
+      margin: 14px 0 7px;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      border: 1px solid #ccd4d2;
+      padding: 13px;
+      border: 1px solid #d5ddda;
       border-radius: 10px;
-      font-size: 16px;
+      font-size: 15px;
       outline: none;
     }
 
     input:focus {
-      border-color: #55bdb5;
+      border-color: #159b69;
     }
 
     button {
       width: 100%;
-      margin-top: 24px;
-      padding: 15px;
-      border: 0;
+      margin-top: 22px;
+      padding: 14px;
+      border: none;
       border-radius: 10px;
-      background: #55bdb5;
+      background: #159b69;
       color: white;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    button:hover {
-      opacity: .9;
+    button:disabled {
+      opacity: 0.6;
     }
 
-    .signup {
+    #message {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 9px;
       text-align: center;
-      margin-top: 22px;
-      color: #66706f;
+      font-size: 14px;
     }
 
-    .signup a {
-      color: #279b93;
-      font-weight: 700;
+    .links {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    a {
+      color: #159b69;
       text-decoration: none;
+      font-weight: 700;
     }
 
     .back {
       display: block;
       text-align: center;
-      margin-top: 18px;
-      color: #66706f;
-      text-decoration: none;
-    }
-
-    .message {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #fff3cd;
-      color: #664d03;
-      text-align: center;
+      margin-top: 16px;
+      color: #68716f;
+      font-weight: normal;
     }
   </style>
 </head>
@@ -116,10 +120,12 @@
 
   <div class="login-card">
 
-    <div class="brand">KRAVITYSB</div>
+    <div class="brand">
+      KRAVITYSB <span>USDT</span>
+    </div>
 
     <div class="subtitle">
-      Sign in to your account
+      Login to your account
     </div>
 
     <form id="loginForm">
@@ -128,6 +134,7 @@
       <input
         type="email"
         id="email"
+        name="email"
         placeholder="Enter your email"
         required
       >
@@ -136,21 +143,22 @@
       <input
         type="password"
         id="password"
+        name="password"
         placeholder="Enter your password"
         required
       >
 
-      <button type="submit">
+      <button type="submit" id="loginButton">
         Login
       </button>
 
-      <div class="message" id="message"></div>
-
     </form>
 
-    <div class="signup">
+    <div id="message"></div>
+
+    <div class="links">
       Don't have an account?
-      <a href="signup.html">Sign up</a>
+      <a href="signup.html">Sign Up</a>
     </div>
 
     <a class="back" href="index.html">
@@ -160,16 +168,67 @@
   </div>
 
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    const form = document.getElementById("loginForm");
+    const button = document.getElementById("loginButton");
+    const message = document.getElementById("message");
 
-      const message = document.getElementById("message");
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
 
-      message.textContent =
-        "Login system will be connected next.";
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-      message.style.display = "block";
+      message.style.display = "none";
+
+      button.disabled = true;
+      button.textContent = "Logging in...";
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            email,
+            password
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showMessage("Login successful! Redirecting...", true);
+
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1000);
+
+        } else {
+          showMessage(
+            data.message || "Invalid email or password.",
+            false
+          );
+        }
+
+      } catch (error) {
+        showMessage(
+          "Connection error. Please try again.",
+          false
+        );
+      }
+
+      button.disabled = false;
+      button.textContent = "Login";
     });
+
+    function showMessage(text, success) {
+      message.textContent = text;
+      message.style.display = "block";
+      message.style.background = success ? "#e7f8f0" : "#fdecec";
+      message.style.color = success ? "#087443" : "#b42318";
+    }
   </script>
 
 </body>
