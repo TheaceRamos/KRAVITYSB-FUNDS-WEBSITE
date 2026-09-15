@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="KRAVITYSB USDT mobile wallet">
+  <title>KRAVITYSB USDT</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #050b14;
+      --card: #0c1625;
+      --card-light: #111e30;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: #8d9bad;
+      --primary: #18d6a5;
+      --primary-dark: #0fa985;
+      --danger: #ff647c;
+      --warning: #ffbd59;
+      --blue: #4e9cff;
+    }
+
+    body {
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(24,214,165,0.12), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      margin: auto;
+      position: relative;
+      padding-bottom: 90px;
+    }
+
+    /* HEADER */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 20px 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #19e2ad, #0e8fba);
+      color: #00130f;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 8px 30px rgba(24,214,165,0.18);
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .network {
+      border: 1px solid rgba(255,189,89,0.25);
+      background: rgba(255,189,89,0.08);
+      color: var(--warning);
+      padding: 7px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* CONTENT */
+
+    main {
+      padding: 8px 16px 20px;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome {
+      margin: 15px 4px;
+    }
+
+    .welcome small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .welcome h1 {
+      font-size: 27px;
+      margin-top: 5px;
+      letter-spacing: -1px;
+    }
+
+    /* BALANCE CARD */
+
+    .balance-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(24,214,165,0.18), rgba(16,47,68,0.7)),
+        var(--card);
+      border: 1px solid rgba(24,214,165,0.14);
+      border-radius: 25px;
+      padding: 24px;
+      margin: 18px 0;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+
+    .balance-card::after {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      right: -80px;
+      top: -80px;
+      background: rgba(24,214,165,0.08);
+    }
+
+    .balance-label {
+      color: #a9b7c6;
+      font-size: 13px;
+    }
+
+    .balance {
+      font-size: 39px;
+      font-weight: 800;
+      margin-top: 7px;
+      letter-spacing: -1.5px;
+    }
+
+    .balance span {
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .balance-usd {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .wallet-address {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .wallet-address small {
+      color: var(--muted);
+    }
+
+    .wallet-address strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .copy-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      padding: 8px 11px;
+      border-radius: 9px;
+      font-size: 11px;
+    }
+
+    /* ACTION BUTTONS */
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 17px;
+      padding: 16px 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: white;
+    }
+
+    .action-btn.deposit {
+      background: var(--primary);
+      color: #001711;
+    }
+
+    .action-btn.withdraw {
+      background: var(--card-light);
+      border: 1px solid var(--border);
+    }
+
+    .action-icon {
+      font-size: 19px;
+    }
+
+    /* SECTIONS */
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 25px 2px 12px;
+    }
+
+    .section-title h2 {
+      font-size: 17px;
+    }
+
+    .section-title button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 12px;
+    }
+
+    /* TRANSACTIONS */
+
+    .transaction {
+      display: flex;
+      align
