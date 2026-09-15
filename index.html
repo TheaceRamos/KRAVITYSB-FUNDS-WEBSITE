@@ -9,7 +9,13 @@ header{padding:22px 18px;display:flex;justify-content:space-between;font-weight:
 main{padding:8px 18px 80px}.muted{color:#728079;font-size:13px}.card{background:#14221d;color:white;border-radius:20px;padding:20px;margin:12px 0 18px}.balance{font-size:31px;font-weight:800;margin:7px 0}.buttons{display:flex;gap:9px;margin-top:17px}button{border:0;border-radius:12px;padding:12px 16px;font-weight:700}.green{background:#159b69;color:white}.light{background:white;color:#14221d}.tx{padding:12px 0;border-bottom:1px solid #edf0ef}.address{background:#f2f5f4;padding:13px;border-radius:11px;word-break:break-all;font-size:12px}.warn{background:#fff5dd;border:1px solid #f3d58b;padding:11px;border-radius:11px;margin-top:12px;font-size:12px}.wide{width:100%;margin-top:12px}input{width:100%;padding:13px;border:1px solid #d8dfdc;border-radius:11px;margin:7px 0 12px;box-sizing:border-box}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #e5eae7;display:flex;justify-content:space-around;padding:11px 0}.nav button{background:none;color:#73807a}.nav .on{color:#159b69}.page{display:none}.page.on{display:block}.back{background:none;padding:0 0 12px;color:#159b69}
 </style></head>
 <body><div class="app">
-<header><div class="brand">KRAVITYSB <span>USDT</span></div><div>◉</div></header>
+<header>
+  <div class="brand">KRAVITYSB <span>USDT</span></div>
+  <div style="display:flex;gap:6px;align-items:center">
+    <a href="login.html" style="text-decoration:none;color:#159b69;font-size:13px;font-weight:700">Login</a>
+    <a href="signup.html" style="text-decoration:none;background:#159b69;color:white;padding:8px 10px;border-radius:9px;font-size:13px;font-weight:700">Sign Up</a>
+  </div>
+</header>
 <main>
 <section id="home" class="page on"><p class="muted">Testnet wallet</p><div class="card"><div class="muted">Available test balance</div><div id="balance" class="balance">0.00 USDT</div><div class="muted">TRON Shasta — no real funds</div><div class="buttons"><button class="green" onclick="go('deposit')">↓ Deposit</button><button class="light" onclick="go('withdraw')">↑ Withdraw</button></div></div><h3>Recent deposits</h3><div id="txs"><p class="muted">Checking blockchain…</p></div></section>
 <section id="deposit" class="page"><button class="back" onclick="go('home')">← Back</button><h2>Deposit USDT</h2><p class="muted">Network: TRON Shasta Testnet</p><div class="address" id="addr">Loading…</div><button class="green wide" onclick="navigator.clipboard.writeText(document.getElementById('addr').innerText)">Copy address</button><div class="warn">Only send Shasta test USDT. Do not send real USDT to this address.</div></section>
