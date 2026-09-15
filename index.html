@@ -1,137 +1,600 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KRAVITYSB USDT</title>
-<style>
-body{margin:0;background:#f4f7f6;font-family:Arial,sans-serif;color:#14221d}.app{max-width:430px;margin:auto;min-height:100vh;background:#fff}
-header{padding:22px 18px;display:flex;justify-content:space-between;font-weight:800;font-size:21px}.brand span{color:#159b69}
-main{padding:8px 18px 80px}.muted{color:#728079;font-size:13px}.card{background:#14221d;color:white;border-radius:20px;padding:20px;margin:12px 0 18px}.balance{font-size:31px;font-weight:800;margin:7px 0}.buttons{display:flex;gap:9px;margin-top:17px}button{border:0;border-radius:12px;padding:12px 16px;font-weight:700}.green{background:#159b69;color:white}.light{background:white;color:#14221d}.tx{padding:12px 0;border-bottom:1px solid #edf0ef}.address{background:#f2f5f4;padding:13px;border-radius:11px;word-break:break-all;font-size:12px}.warn{background:#fff5dd;border:1px solid #f3d58b;padding:11px;border-radius:11px;margin-top:12px;font-size:12px}.wide{width:100%;margin-top:12px}input{width:100%;padding:13px;border:1px solid #d8dfdc;border-radius:11px;margin:7px 0 12px;box-sizing:border-box}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #e5eae7;display:flex;justify-content:space-around;padding:11px 0}.nav button{background:none;color:#73807a}.nav .on{color:#159b69}.page{display:none}.page.on{display:block}.back{background:none;padding:0 0 12px;color:#159b69}
-</style></head>
 
-<body><div class="app">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>KRAVITYSB USDT</title>
+
+<style>
+body{
+  margin:0;
+  background:#f4f7f6;
+  font-family:Arial,sans-serif;
+  color:#14221d
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  background:#fff
+}
+
+header{
+  padding:22px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:800;
+  font-size:21px
+}
+
+.brand span{
+  color:#159b69
+}
+
+main{
+  padding:8px 18px 80px
+}
+
+.muted{
+  color:#728079;
+  font-size:13px
+}
+
+.card{
+  background:#14221d;
+  color:white;
+  border-radius:20px;
+  padding:20px;
+  margin:12px 0 18px
+}
+
+.balance{
+  font-size:31px;
+  font-weight:800;
+  margin:7px 0
+}
+
+.buttons{
+  display:flex;
+  gap:9px;
+  margin-top:17px
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:12px 16px;
+  font-weight:700
+}
+
+.green{
+  background:#159b69;
+  color:white
+}
+
+.light{
+  background:white;
+  color:#14221d
+}
+
+.tx{
+  padding:12px 0;
+  border-bottom:1px solid #edf0ef
+}
+
+.address{
+  background:#f2f5f4;
+  padding:13px;
+  border-radius:11px;
+  word-break:break-all;
+  font-size:12px
+}
+
+.warn{
+  background:#fff5dd;
+  border:1px solid #f3d58b;
+  padding:11px;
+  border-radius:11px;
+  margin-top:12px;
+  font-size:12px
+}
+
+.wide{
+  width:100%;
+  margin-top:12px
+}
+
+input{
+  width:100%;
+  padding:13px;
+  border:1px solid #d8dfdc;
+  border-radius:11px;
+  margin:7px 0 12px;
+  box-sizing:border-box
+}
+
+.nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:430px;
+  background:#fff;
+  border-top:1px solid #e5eae7;
+  display:flex;
+  justify-content:space-around;
+  padding:11px 0
+}
+
+.nav button{
+  background:none;
+  color:#73807a
+}
+
+.nav .on{
+  color:#159b69
+}
+
+.page{
+  display:none
+}
+
+.page.on{
+  display:block
+}
+
+.back{
+  background:none;
+  padding:0 0 12px;
+  color:#159b69
+}
+
+.auth-user{
+  color:#14221d;
+  font-size:12px;
+  font-weight:700;
+  max-width:90px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.logout-btn{
+  background:#f2f5f4;
+  color:#14221d;
+  padding:8px 10px;
+  border-radius:9px;
+  font-size:12px
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
 
 <header>
-  <div class="brand">KRAVITYSB <span>USDT</span></div>
-  <div style="display:flex;gap:6px;align-items:center">
-    <a href="login.html" style="text-decoration:none;color:#159b69;font-size:13px;font-weight:700">Login</a>
-    <a href="signup.html" style="text-decoration:none;background:#159b69;color:white;padding:8px 10px;border-radius:9px;font-size:13px;font-weight:700">Sign Up</a>
-  </div>
+
+<div class="brand">
+  KRAVITYSB <span>USDT</span>
+</div>
+
+<div id="authArea" style="display:flex;gap:6px;align-items:center">
+
+  <a href="login.html"
+     style="text-decoration:none;color:#159b69;font-size:13px;font-weight:700">
+     Login
+  </a>
+
+  <a href="signup.html"
+     style="text-decoration:none;background:#159b69;color:white;padding:8px 10px;border-radius:9px;font-size:13px;font-weight:700">
+     Sign Up
+  </a>
+
+</div>
+
 </header>
+
 
 <main>
 
 <section id="home" class="page on">
+
 <p class="muted">Testnet wallet</p>
+
 <div class="card">
-<div class="muted">Available test balance</div>
-<div id="balance" class="balance">0.00 USDT</div>
-<div class="muted">TRON Shasta — no real funds</div>
+
+<div class="muted">
+Available test balance
+</div>
+
+<div id="balance" class="balance">
+0.00 USDT
+</div>
+
+<div class="muted">
+TRON Shasta — no real funds
+</div>
+
 <div class="buttons">
-<button class="green" onclick="go('deposit')">↓ Deposit</button>
-<button class="light" onclick="go('withdraw')">↑ Withdraw</button>
+
+<button class="green" onclick="go('deposit')">
+↓ Deposit
+</button>
+
+<button class="light" onclick="go('withdraw')">
+↑ Withdraw
+</button>
+
 </div>
+
 </div>
+
 <h3>Recent deposits</h3>
-<div id="txs"><p class="muted">Checking blockchain…</p></div>
+
+<div id="txs">
+<p class="muted">Checking blockchain…</p>
+</div>
+
 </section>
+
 
 <section id="deposit" class="page">
-<button class="back" onclick="go('home')">← Back</button>
+
+<button class="back" onclick="go('home')">
+← Back
+</button>
+
 <h2>Deposit USDT</h2>
-<p class="muted">Network: TRON Shasta Testnet</p>
-<div class="address" id="addr">Loading…</div>
-<button class="green wide" onclick="navigator.clipboard.writeText(document.getElementById('addr').innerText)">Copy address</button>
-<div class="warn">Only send Shasta test USDT. Do not send real USDT to this address.</div>
+
+<p class="muted">
+Network: TRON Shasta Testnet
+</p>
+
+<div class="address" id="addr">
+Loading…
+</div>
+
+<button class="green wide"
+onclick="navigator.clipboard.writeText(document.getElementById('addr').innerText)">
+Copy address
+</button>
+
+<div class="warn">
+Only send Shasta test USDT. Do not send real USDT to this address.
+</div>
+
 </section>
+
 
 <section id="withdraw" class="page">
-<button class="back" onclick="go('home')">← Back</button>
+
+<button class="back" onclick="go('home')">
+← Back
+</button>
+
 <h2>Withdraw USDT</h2>
-<p class="muted">Trial mode — withdrawal is queued for testnet signing.</p>
-<label>Destination TRON address</label>
+
+<p class="muted">
+Trial mode — withdrawal is queued for testnet signing.
+</p>
+
+<label>
+Destination TRON address
+</label>
+
 <input id="dest" placeholder="T...">
-<label>Amount</label>
-<input id="amt" type="number" min="0" step="0.01" placeholder="0.00">
-<button class="green wide" onclick="withdraw()">Submit test withdrawal</button>
+
+<label>
+Amount
+</label>
+
+<input id="amt"
+       type="number"
+       min="0"
+       step="0.01"
+       placeholder="0.00">
+
+<button class="green wide"
+onclick="withdraw()">
+Submit test withdrawal
+</button>
+
 <p id="wmsg" class="muted"></p>
+
 </section>
 
+
 <section id="history" class="page">
-<button class="back" onclick="go('home')">← Back</button>
+
+<button class="back" onclick="go('home')">
+← Back
+</button>
+
 <h2>Transactions</h2>
+
 <div id="alltx"></div>
+
 </section>
 
 </main>
 
+
 <nav class="nav">
-<button class="on" onclick="go('home',this)">⌂<br>Home</button>
-<button onclick="go('history',this)">↔<br>History</button>
-<button onclick="go('deposit',this)">↓<br>Deposit</button>
+
+<button class="on" onclick="go('home',this)">
+⌂<br>Home
+</button>
+
+<button onclick="go('history',this)">
+↔<br>History
+</button>
+
+<button onclick="go('deposit',this)">
+↓<br>Deposit
+</button>
+
 </nav>
 
 </div>
 
+
 <script>
+
 let cfg;
 
-async function load(){
-  cfg=await fetch('/api/config').then(r=>r.json());
-  document.getElementById('addr').textContent=cfg.depositAddress;
-  await deposits();
-}
 
-async function deposits(){
+/* CHECK LOGIN STATUS */
+
+async function checkAuth(){
+
   try{
-    let j=await fetch('/api/deposits').then(r=>r.json());
-    let d=j.deposits||[];
-    let total=0;
 
-    d.forEach(x=>{
-      total+=Number(x.value||0)/10**Number(x.token_info?.decimals||6);
-    });
+    const r = await fetch('/api/me');
+    const j = await r.json();
 
-    document.getElementById('balance').textContent=total.toFixed(6)+' USDT';
+    const area = document.getElementById('authArea');
 
-    let html=d.length
-      ?d.map(x=>`<div class="tx"><b>+${(Number(x.value)/10**Number(x.token_info?.decimals||6)).toFixed(6)} USDT</b><div class="muted">Confirmed • ${new Date(x.block_timestamp).toLocaleString()}</div></div>`).join('')
-      :'<p class="muted">No confirmed deposits yet.</p>';
+    if(!j.loggedIn){
+      return;
+    }
 
-    document.getElementById('txs').innerHTML=html;
-    document.getElementById('alltx').innerHTML=html;
+    area.innerHTML = '';
+
+    const name = document.createElement('span');
+
+    name.textContent =
+      j.user.full_name || j.user.email;
+
+    name.className = 'auth-user';
+
+
+    const logoutButton =
+      document.createElement('button');
+
+    logoutButton.textContent = 'Logout';
+
+    logoutButton.className = 'logout-btn';
+
+    logoutButton.onclick = logout;
+
+
+    area.appendChild(name);
+    area.appendChild(logoutButton);
 
   }catch(e){
-    document.getElementById('txs').innerHTML='<p class="muted">Blockchain check unavailable.</p>';
+
+    console.log('Authentication check unavailable.');
+
   }
+
 }
+
+
+/* LOGOUT */
+
+async function logout(){
+
+  try{
+
+    await fetch('/api/logout',{
+      method:'POST'
+    });
+
+  }finally{
+
+    location.reload();
+
+  }
+
+}
+
+
+/* LOAD WALLET */
+
+async function load(){
+
+  try{
+
+    cfg =
+      await fetch('/api/config')
+      .then(r=>r.json());
+
+    document.getElementById('addr').textContent =
+      cfg.depositAddress;
+
+    await deposits();
+
+  }catch(e){
+
+    document.getElementById('txs').innerHTML =
+      '<p class="muted">Blockchain check unavailable.</p>';
+
+  }
+
+}
+
+
+/* CHECK DEPOSITS */
+
+async function deposits(){
+
+  try{
+
+    let j =
+      await fetch('/api/deposits')
+      .then(r=>r.json());
+
+    let d = j.deposits || [];
+
+    let total = 0;
+
+    d.forEach(x => {
+
+      total +=
+        Number(x.value || 0) /
+        10 ** Number(
+          x.token_info?.decimals || 6
+        );
+
+    });
+
+
+    document.getElementById('balance').textContent =
+      total.toFixed(6) + ' USDT';
+
+
+    let html = d.length
+
+      ? d.map(x =>
+
+        `<div class="tx">
+          <b>
+            +${(
+              Number(x.value) /
+              10 ** Number(
+                x.token_info?.decimals || 6
+              )
+            ).toFixed(6)} USDT
+          </b>
+
+          <div class="muted">
+            Confirmed •
+            ${new Date(
+              x.block_timestamp
+            ).toLocaleString()}
+          </div>
+
+        </div>`
+
+      ).join('')
+
+      : '<p class="muted">No confirmed deposits yet.</p>';
+
+
+    document.getElementById('txs').innerHTML =
+      html;
+
+    document.getElementById('alltx').innerHTML =
+      html;
+
+
+  }catch(e){
+
+    document.getElementById('txs').innerHTML =
+      '<p class="muted">Blockchain check unavailable.</p>';
+
+  }
+
+}
+
+
+/* PAGE NAVIGATION */
 
 function go(id,el){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
+
+  document
+    .querySelectorAll('.page')
+    .forEach(x =>
+      x.classList.remove('on')
+    );
+
+  document
+    .getElementById(id)
+    .classList.add('on');
+
 
   if(el){
-    document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));
+
+    document
+      .querySelectorAll('.nav button')
+      .forEach(x =>
+        x.classList.remove('on')
+      );
+
     el.classList.add('on');
+
   }
+
 }
+
+
+/* TEST WITHDRAWAL */
 
 async function withdraw(){
-  let amount=Number(document.getElementById('amt').value);
-  let destination=document.getElementById('dest').value.trim();
 
-  let r=await fetch('/api/withdrawals',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({amount,destination})
-  });
+  let amount =
+    Number(
+      document.getElementById('amt').value
+    );
 
-  let j=await r.json();
-  document.getElementById('wmsg').textContent=j.message||j.error;
+  let destination =
+    document.getElementById('dest').value.trim();
+
+
+  try{
+
+    let r =
+      await fetch('/api/withdrawals',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          amount,
+          destination
+        })
+      });
+
+
+    let j = await r.json();
+
+    document.getElementById('wmsg').textContent =
+      j.message || j.error;
+
+
+  }catch(e){
+
+    document.getElementById('wmsg').textContent =
+      'Withdrawal service unavailable.';
+
+  }
+
 }
 
+
+/* START */
+
+checkAuth();
 load();
+
 setInterval(deposits,15000);
+
 </script>
 
 </body>
