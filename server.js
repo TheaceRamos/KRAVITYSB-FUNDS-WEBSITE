@@ -8,6 +8,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 /* =========================
    REQUIRED ENVIRONMENT
 ========================= */
@@ -24,7 +25,7 @@ if (!process.env.SESSION_SECRET) {
 
 
 /* =========================
-   TESTNET CONFIGURATION
+   SHASTA TESTNET
 ========================= */
 
 const DEPOSIT_ADDRESS =
@@ -65,7 +66,7 @@ app.use(
 
 
 /* =========================
-   SESSION
+   SESSIONS
 ========================= */
 
 app.use(
@@ -108,27 +109,70 @@ async function setupDatabase() {
     )
   `);
 
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS withdrawals (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+      amount NUMERIC(30,6) NOT NULL,
+      destination VARCHAR(64) NOT NULL,
+      status VARCHAR(30) NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+
   console.log("Database ready.");
+
 }
 
 
 /* =========================
-   TESTNET CONFIG
+   AUTH MIDDLEWARE
+========================= */
+
+function requireLogin(req, res, next) {
+
+  if (!req.session.userId) {
+
+    return res.status(401).json({
+      success: false,
+      message: "Please log in first."
+    });
+
+  }
+
+  next();
+
+}
+
+
+/* =========================
+   CONFIG
 ========================= */
 
 app.get("/api/config", (req, res) => {
 
   res.json({
-    network: "TRON Shasta Testnet",
-    depositAddress: DEPOSIT_ADDRESS,
-    usdtContract: USDT_TEST_CONTRACT
+
+    network:
+      "TRON Shasta Testnet",
+
+    depositAddress:
+      DEPOSIT_ADDRESS,
+
+    usdtContract:
+      USDT_TEST_CONTRACT
+
   });
 
 });
 
 
 /* =========================
-   TESTNET DEPOSITS
+   SHASTA DEPOSITS
 ========================= */
 
 app.get("/api/deposits", async (req, res) => {
@@ -143,14 +187,19 @@ app.get("/api/deposits", async (req, res) => {
       "?only_confirmed=true&limit=50&order_by=block_timestamp,desc"
     );
 
+
     if (!response.ok) {
+
       throw new Error(
         `TronGrid returned ${response.status}`
       );
+
     }
+
 
     const data =
       await response.json();
+
 
     const transfers =
       (data.data || []).filter((x) => {
@@ -160,25 +209,35 @@ app.get("/api/deposits", async (req, res) => {
             x.token_info?.address || ""
           ).toLowerCase();
 
+
         const recipient =
           String(
             x.to || ""
           ).toLowerCase();
 
+
         return (
+
           tokenAddress ===
-            USDT_TEST_CONTRACT.toLowerCase()
+          USDT_TEST_CONTRACT.toLowerCase()
+
           &&
+
           recipient ===
-            DEPOSIT_ADDRESS.toLowerCase()
+          DEPOSIT_ADDRESS.toLowerCase()
+
         );
 
       });
 
 
     res.json({
+
       network: "Shasta",
-      deposits: transfers
+
+      deposits:
+        transfers
+
     });
 
 
@@ -189,9 +248,12 @@ app.get("/api/deposits", async (req, res) => {
       error
     );
 
+
     res.status(502).json({
+
       error:
         "Could not read Shasta testnet data"
+
     });
 
   }
@@ -200,59 +262,190 @@ app.get("/api/deposits", async (req, res) => {
 
 
 /* =========================
-   TEST WITHDRAWAL
+   CREATE WITHDRAWAL
 ========================= */
 
-app.post("/api/withdrawals", (req, res) => {
+app.post(
+  "/api/withdrawals",
+  requireLogin,
+  async (req, res) => {
 
-  const {
-    amount,
-    destination
-  } = req.body || {};
+    try {
+
+      const {
+        amount,
+        destination
+      } = req.body || {};
 
 
-  if (
-    !amount ||
-    Number(amount) <= 0
-  ) {
+      const numericAmount =
+        Number(amount);
 
-    return res.status(400).json({
-      error: "Enter a valid amount"
-    });
+
+      if (
+        !Number.isFinite(numericAmount) ||
+        numericAmount <= 0
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Enter a valid withdrawal amount."
+
+        });
+
+      }
+
+
+      if (
+        numericAmount > 1000000
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Test withdrawal amount is too large."
+
+        });
+
+      }
+
+
+      if (
+        !destination ||
+        !/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(
+          destination
+        )
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Enter a valid TRON address."
+
+        });
+
+      }
+
+
+      const result =
+        await pool.query(
+          `INSERT INTO withdrawals
+           (user_id, amount, destination, status)
+           VALUES ($1, $2, $3, 'pending')
+           RETURNING
+             id,
+             amount,
+             destination,
+             status,
+             created_at`,
+          [
+            req.session.userId,
+            numericAmount,
+            destination
+          ]
+        );
+
+
+      res.status(201).json({
+
+        success: true,
+
+        message:
+          "Withdrawal request created and saved as pending.",
+
+        withdrawal:
+          result.rows[0]
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "Withdrawal error:",
+        error
+      );
+
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "Unable to create withdrawal request."
+
+      });
+
+    }
 
   }
+);
 
 
-  if (
-    !destination ||
-    !/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(
-      destination
-    )
-  ) {
+/* =========================
+   USER WITHDRAWAL HISTORY
+========================= */
 
-    return res.status(400).json({
-      error: "Enter a valid TRON address"
-    });
+app.get(
+  "/api/withdrawals",
+  requireLogin,
+  async (req, res) => {
+
+    try {
+
+      const result =
+        await pool.query(
+          `SELECT
+             id,
+             amount,
+             destination,
+             status,
+             created_at
+           FROM withdrawals
+           WHERE user_id = $1
+           ORDER BY created_at DESC`,
+          [req.session.userId]
+        );
+
+
+      res.json({
+
+        success: true,
+
+        withdrawals:
+          result.rows
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "Withdrawal history error:",
+        error
+      );
+
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "Unable to load withdrawal history."
+
+      });
+
+    }
 
   }
-
-
-  res.status(202).json({
-
-    status:
-      "queued_for_testnet_signing",
-
-    amount:
-      Number(amount),
-
-    destination,
-
-    message:
-      "Withdrawal request created. Sign/broadcast it with a dedicated test wallet."
-
-  });
-
-});
+);
 
 
 /* =========================
@@ -279,9 +472,12 @@ app.post("/api/signup", async (req, res) => {
     ) {
 
       return res.status(400).json({
+
         success: false,
+
         message:
           "Please fill in all fields."
+
       });
 
     }
@@ -292,9 +488,12 @@ app.post("/api/signup", async (req, res) => {
     ) {
 
       return res.status(400).json({
+
         success: false,
+
         message:
           "Passwords do not match."
+
       });
 
     }
@@ -305,9 +504,12 @@ app.post("/api/signup", async (req, res) => {
     ) {
 
       return res.status(400).json({
+
         success: false,
+
         message:
           "Password must be at least 8 characters."
+
       });
 
     }
@@ -332,9 +534,12 @@ app.post("/api/signup", async (req, res) => {
     ) {
 
       return res.status(409).json({
+
         success: false,
+
         message:
           "An account with this email already exists."
+
       });
 
     }
@@ -380,6 +585,7 @@ app.post("/api/signup", async (req, res) => {
       "Signup error:",
       error
     );
+
 
     res.status(500).json({
 
@@ -518,6 +724,7 @@ app.post("/api/login", async (req, res) => {
       error
     );
 
+
     res.status(500).json({
 
       success: false,
@@ -545,7 +752,9 @@ app.get("/api/me", async (req, res) => {
     ) {
 
       return res.json({
+
         loggedIn: false
+
       });
 
     }
@@ -571,8 +780,11 @@ app.get("/api/me", async (req, res) => {
         () => {}
       );
 
+
       return res.json({
+
         loggedIn: false
+
       });
 
     }
@@ -594,6 +806,7 @@ app.get("/api/me", async (req, res) => {
       "Session error:",
       error
     );
+
 
     res.status(500).json({
 
@@ -650,7 +863,7 @@ app.post("/api/logout", (req, res) => {
 
 
 /* =========================
-   SERVE WEBSITE
+   WEBSITE
 ========================= */
 
 app.use(
