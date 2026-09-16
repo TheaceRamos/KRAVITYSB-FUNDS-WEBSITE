@@ -8,6 +8,10 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+/* =========================
+   REQUIRED ENVIRONMENT
+========================= */
+
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set.");
   process.exit(1);
@@ -18,15 +22,51 @@ if (!process.env.SESSION_SECRET) {
   process.exit(1);
 }
 
+
+/* =========================
+   TESTNET CONFIGURATION
+========================= */
+
+const DEPOSIT_ADDRESS =
+  "TYyHGjz9jwUM6bqsqaNqwhFqRoTtdQj49x";
+
+const TRONGRID =
+  "https://api.shasta.trongrid.io";
+
+const USDT_TEST_CONTRACT =
+  "TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs";
+
+
+/* =========================
+   DATABASE
+========================= */
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
+
+/* =========================
+   EXPRESS
+========================= */
 
 app.set("trust proxy", 1);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  express.urlencoded({
+    extended: true
+  })
+);
+
+
+/* =========================
+   SESSION
+========================= */
 
 app.use(
   session({
@@ -35,9 +75,13 @@ app.use(
       tableName: "user_sessions",
       createTableIfMissing: true
     }),
+
     secret: process.env.SESSION_SECRET,
+
     resave: false,
+
     saveUninitialized: false,
+
     cookie: {
       httpOnly: true,
       secure: true,
@@ -47,8 +91,13 @@ app.use(
   })
 );
 
-// Create users table
+
+/* =========================
+   DATABASE SETUP
+========================= */
+
 async function setupDatabase() {
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -62,199 +111,595 @@ async function setupDatabase() {
   console.log("Database ready.");
 }
 
-// SIGN UP
-app.post("/api/signup", async (req, res) => {
+
+/* =========================
+   TESTNET CONFIG
+========================= */
+
+app.get("/api/config", (req, res) => {
+
+  res.json({
+    network: "TRON Shasta Testnet",
+    depositAddress: DEPOSIT_ADDRESS,
+    usdtContract: USDT_TEST_CONTRACT
+  });
+
+});
+
+
+/* =========================
+   TESTNET DEPOSITS
+========================= */
+
+app.get("/api/deposits", async (req, res) => {
+
   try {
-    const { fullName, email, password, confirmPassword } = req.body;
 
-    if (!fullName || !email || !password || !confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Please fill in all fields."
-      });
-    }
+    const url =
+      `${TRONGRID}/v1/accounts/${DEPOSIT_ADDRESS}/transactions/trc20`;
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Passwords do not match."
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 8 characters."
-      });
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanName = fullName.trim();
-
-    const existing = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [cleanEmail]
+    const response = await fetch(
+      url +
+      "?only_confirmed=true&limit=50&order_by=block_timestamp,desc"
     );
 
-    if (existing.rows.length > 0) {
+    if (!response.ok) {
+      throw new Error(
+        `TronGrid returned ${response.status}`
+      );
+    }
+
+    const data =
+      await response.json();
+
+    const transfers =
+      (data.data || []).filter((x) => {
+
+        const tokenAddress =
+          String(
+            x.token_info?.address || ""
+          ).toLowerCase();
+
+        const recipient =
+          String(
+            x.to || ""
+          ).toLowerCase();
+
+        return (
+          tokenAddress ===
+            USDT_TEST_CONTRACT.toLowerCase()
+          &&
+          recipient ===
+            DEPOSIT_ADDRESS.toLowerCase()
+        );
+
+      });
+
+
+    res.json({
+      network: "Shasta",
+      deposits: transfers
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      "Shasta deposit lookup error:",
+      error
+    );
+
+    res.status(502).json({
+      error:
+        "Could not read Shasta testnet data"
+    });
+
+  }
+
+});
+
+
+/* =========================
+   TEST WITHDRAWAL
+========================= */
+
+app.post("/api/withdrawals", (req, res) => {
+
+  const {
+    amount,
+    destination
+  } = req.body || {};
+
+
+  if (
+    !amount ||
+    Number(amount) <= 0
+  ) {
+
+    return res.status(400).json({
+      error: "Enter a valid amount"
+    });
+
+  }
+
+
+  if (
+    !destination ||
+    !/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(
+      destination
+    )
+  ) {
+
+    return res.status(400).json({
+      error: "Enter a valid TRON address"
+    });
+
+  }
+
+
+  res.status(202).json({
+
+    status:
+      "queued_for_testnet_signing",
+
+    amount:
+      Number(amount),
+
+    destination,
+
+    message:
+      "Withdrawal request created. Sign/broadcast it with a dedicated test wallet."
+
+  });
+
+});
+
+
+/* =========================
+   SIGN UP
+========================= */
+
+app.post("/api/signup", async (req, res) => {
+
+  try {
+
+    const {
+      fullName,
+      email,
+      password,
+      confirmPassword
+    } = req.body;
+
+
+    if (
+      !fullName ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Please fill in all fields."
+      });
+
+    }
+
+
+    if (
+      password !== confirmPassword
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Passwords do not match."
+      });
+
+    }
+
+
+    if (
+      password.length < 8
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters."
+      });
+
+    }
+
+
+    const cleanEmail =
+      email.trim().toLowerCase();
+
+    const cleanName =
+      fullName.trim();
+
+
+    const existing =
+      await pool.query(
+        "SELECT id FROM users WHERE email = $1",
+        [cleanEmail]
+      );
+
+
+    if (
+      existing.rows.length > 0
+    ) {
+
       return res.status(409).json({
         success: false,
-        message: "An account with this email already exists."
+        message:
+          "An account with this email already exists."
       });
+
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
 
-    const result = await pool.query(
-      `INSERT INTO users (full_name, email, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING id, full_name, email`,
-      [cleanName, cleanEmail, passwordHash]
-    );
+    const passwordHash =
+      await bcrypt.hash(
+        password,
+        12
+      );
+
+
+    const result =
+      await pool.query(
+        `INSERT INTO users
+         (full_name, email, password_hash)
+         VALUES ($1, $2, $3)
+         RETURNING id, full_name, email`,
+        [
+          cleanName,
+          cleanEmail,
+          passwordHash
+        ]
+      );
+
 
     res.status(201).json({
+
       success: true,
-      message: "Account created successfully.",
-      user: result.rows[0]
+
+      message:
+        "Account created successfully.",
+
+      user:
+        result.rows[0]
+
     });
+
 
   } catch (error) {
-    console.error("Signup error:", error);
+
+    console.error(
+      "Signup error:",
+      error
+    );
+
     res.status(500).json({
+
       success: false,
-      message: "Unable to create account."
+
+      message:
+        "Unable to create account."
+
     });
+
   }
+
 });
 
-// LOGIN
+
+/* =========================
+   LOGIN
+========================= */
+
 app.post("/api/login", async (req, res) => {
+
   try {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
+    const {
+      email,
+      password
+    } = req.body;
+
+
+    if (
+      !email ||
+      !password
+    ) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Please enter your email and password."
+
+        message:
+          "Please enter your email and password."
+
       });
+
     }
 
-    const cleanEmail = email.trim().toLowerCase();
 
-    const result = await pool.query(
-      "SELECT id, full_name, email, password_hash FROM users WHERE email = $1",
-      [cleanEmail]
-    );
+    const cleanEmail =
+      email.trim().toLowerCase();
 
-    if (result.rows.length === 0) {
+
+    const result =
+      await pool.query(
+        `SELECT
+           id,
+           full_name,
+           email,
+           password_hash
+         FROM users
+         WHERE email = $1`,
+        [cleanEmail]
+      );
+
+
+    if (
+      result.rows.length === 0
+    ) {
+
       return res.status(401).json({
+
         success: false,
-        message: "Invalid email or password."
+
+        message:
+          "Invalid email or password."
+
       });
+
     }
 
-    const user = result.rows[0];
 
-    const validPassword = await bcrypt.compare(
-      password,
-      user.password_hash
-    );
+    const user =
+      result.rows[0];
+
+
+    const validPassword =
+      await bcrypt.compare(
+        password,
+        user.password_hash
+      );
+
 
     if (!validPassword) {
+
       return res.status(401).json({
+
         success: false,
-        message: "Invalid email or password."
+
+        message:
+          "Invalid email or password."
+
       });
+
     }
 
-    req.session.userId = user.id;
+
+    req.session.userId =
+      user.id;
+
 
     res.json({
+
       success: true,
-      message: "Login successful.",
+
+      message:
+        "Login successful.",
+
       user: {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email
+
+        id:
+          user.id,
+
+        full_name:
+          user.full_name,
+
+        email:
+          user.email
+
       }
+
     });
+
 
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Unable to log in."
-    });
-  }
-});
 
-// CURRENT USER
-app.get("/api/me", async (req, res) => {
-  try {
-    if (!req.session.userId) {
-      return res.json({
-        loggedIn: false
-      });
-    }
-
-    const result = await pool.query(
-      "SELECT id, full_name, email FROM users WHERE id = $1",
-      [req.session.userId]
+    console.error(
+      "Login error:",
+      error
     );
 
-    if (result.rows.length === 0) {
-      req.session.destroy(() => {});
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        "Unable to log in."
+
+    });
+
+  }
+
+});
+
+
+/* =========================
+   CURRENT USER
+========================= */
+
+app.get("/api/me", async (req, res) => {
+
+  try {
+
+    if (
+      !req.session.userId
+    ) {
+
       return res.json({
         loggedIn: false
       });
+
     }
 
+
+    const result =
+      await pool.query(
+        `SELECT
+           id,
+           full_name,
+           email
+         FROM users
+         WHERE id = $1`,
+        [req.session.userId]
+      );
+
+
+    if (
+      result.rows.length === 0
+    ) {
+
+      req.session.destroy(
+        () => {}
+      );
+
+      return res.json({
+        loggedIn: false
+      });
+
+    }
+
+
     res.json({
+
       loggedIn: true,
-      user: result.rows[0]
+
+      user:
+        result.rows[0]
+
     });
+
 
   } catch (error) {
-    console.error("Session error:", error);
+
+    console.error(
+      "Session error:",
+      error
+    );
+
     res.status(500).json({
+
       loggedIn: false
+
     });
+
   }
+
 });
 
-// LOGOUT
+
+/* =========================
+   LOGOUT
+========================= */
+
 app.post("/api/logout", (req, res) => {
-  req.session.destroy((error) => {
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Unable to log out."
-      });
-    }
 
-    res.clearCookie("connect.sid");
-    res.json({
-      success: true,
-      message: "Logged out."
-    });
-  });
+  req.session.destroy(
+    (error) => {
+
+      if (error) {
+
+        return res.status(500).json({
+
+          success: false,
+
+          message:
+            "Unable to log out."
+
+        });
+
+      }
+
+
+      res.clearCookie(
+        "connect.sid"
+      );
+
+
+      res.json({
+
+        success: true,
+
+        message:
+          "Logged out."
+
+      });
+
+    }
+  );
+
 });
 
-// Serve website files
-app.use(express.static(__dirname));
+
+/* =========================
+   SERVE WEBSITE
+========================= */
+
+app.use(
+  express.static(__dirname)
+);
+
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+
+  res.sendFile(
+    path.join(
+      __dirname,
+      "index.html"
+    )
+  );
+
 });
 
-// Start server
+
+/* =========================
+   START SERVER
+========================= */
+
 setupDatabase()
+
   .then(() => {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+
+    app.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+
+        console.log(
+          `Server running on port ${PORT}`
+        );
+
+      }
+
+    );
+
   })
+
   .catch((error) => {
-    console.error("Database setup failed:", error);
+
+    console.error(
+      "Database setup failed:",
+      error
+    );
+
     process.exit(1);
+
   });
