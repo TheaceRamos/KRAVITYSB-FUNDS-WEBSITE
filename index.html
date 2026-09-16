@@ -30,9 +30,12 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  font-weight:800;
-  font-size:20px;
   border-bottom:1px solid #edf0ef;
+}
+
+.brand{
+  font-size:20px;
+  font-weight:800;
 }
 
 .brand span{
@@ -49,20 +52,10 @@ header{
   color:#14221d;
   font-size:12px;
   font-weight:700;
-  max-width:100px;
+  max-width:95px;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-}
-
-.logout{
-  border:0;
-  background:#f2f5f4;
-  color:#14221d;
-  padding:8px 10px;
-  border-radius:9px;
-  font-size:12px;
-  font-weight:700;
 }
 
 .auth-link{
@@ -79,6 +72,16 @@ header{
   padding:8px 10px;
   border-radius:9px;
   font-size:13px;
+  font-weight:700;
+}
+
+.logout{
+  border:0;
+  background:#f2f5f4;
+  color:#14221d;
+  padding:8px 10px;
+  border-radius:9px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -117,6 +120,12 @@ main{
   margin:8px 0;
 }
 
+.balance-note{
+  margin-top:5px;
+  font-size:11px;
+  color:#b9c5c0;
+}
+
 .buttons{
   display:flex;
   gap:9px;
@@ -137,7 +146,7 @@ button{
 }
 
 .light{
-  background:white;
+  background:#fff;
   color:#14221d;
 }
 
@@ -153,6 +162,7 @@ button{
 
 .tx-title{
   font-weight:800;
+  font-size:16px;
 }
 
 .tx-deposit{
@@ -160,13 +170,13 @@ button{
 }
 
 .tx-withdraw{
-  color:#c47b00;
+  color:#b97800;
 }
 
 .tx-detail{
-  margin-top:4px;
-  font-size:12px;
+  margin-top:5px;
   color:#728079;
+  font-size:12px;
 }
 
 .address{
@@ -248,6 +258,20 @@ label{
   margin-top:6px;
 }
 
+.empty{
+  text-align:center;
+  padding:25px 10px;
+  color:#728079;
+  font-size:13px;
+}
+
+.small{
+  font-size:11px;
+  color:#728079;
+  word-break:break-all;
+  margin-top:3px;
+}
+
 .nav{
   position:fixed;
   bottom:0;
@@ -273,19 +297,6 @@ label{
 .nav .on{
   color:#159b69;
 }
-
-.empty{
-  text-align:center;
-  padding:25px 10px;
-  color:#728079;
-  font-size:13px;
-}
-
-.small{
-  font-size:11px;
-  color:#728079;
-  word-break:break-all;
-}
 </style>
 </head>
 
@@ -305,6 +316,7 @@ KRAVITYSB <span>USDT</span>
 </div>
 
 </header>
+
 
 <main>
 
@@ -327,6 +339,10 @@ Available test balance
 TRON Shasta — no real funds
 </div>
 
+<div id="balanceNote" class="balance-note">
+Loading balance…
+</div>
+
 <div class="buttons">
 
 <button class="green" onclick="go('deposit')">
@@ -340,6 +356,7 @@ TRON Shasta — no real funds
 </div>
 
 </div>
+
 
 <h3>Recent deposits</h3>
 
@@ -367,9 +384,7 @@ Network: TRON Shasta Testnet
 Loading…
 </div>
 
-<button
-class="green wide"
-onclick="copyAddress()">
+<button class="green wide" onclick="copyAddress()">
 Copy address
 </button>
 
@@ -459,7 +474,7 @@ Refresh history
 </main>
 
 
-<!-- NAVIGATION -->
+<!-- BOTTOM NAV -->
 <nav class="nav">
 
 <button
@@ -500,10 +515,10 @@ async function checkAuth(){
   try{
 
     const r = await fetch('/api/me');
-
     const j = await r.json();
 
-    const area = document.getElementById('authArea');
+    const area =
+      document.getElementById('authArea');
 
     if(!j.loggedIn){
       return;
@@ -511,7 +526,8 @@ async function checkAuth(){
 
     area.innerHTML = '';
 
-    const name = document.createElement('span');
+    const name =
+      document.createElement('span');
 
     name.className = 'auth-name';
 
@@ -520,10 +536,10 @@ async function checkAuth(){
       j.user.email ||
       'Account';
 
-    const btn = document.createElement('button');
+    const btn =
+      document.createElement('button');
 
     btn.className = 'logout';
-
     btn.textContent = 'Logout';
 
     btn.onclick = logout;
@@ -565,24 +581,27 @@ async function load(){
 
   try{
 
-    cfg = await fetch('/api/config')
+    cfg =
+      await fetch('/api/config')
       .then(r => r.json());
 
     if(cfg.depositAddress){
 
-      document.getElementById('addr').textContent =
+      document.getElementById('addr')
+        .textContent =
         cfg.depositAddress;
 
     }
 
   }catch(e){
 
-    document.getElementById('addr').textContent =
+    document.getElementById('addr')
+      .textContent =
       'Deposit address unavailable';
 
   }
 
-  await deposits();
+  await refreshWallet();
 
   await loadHistory();
 
@@ -598,9 +617,11 @@ async function copyAddress(){
   const address =
     document.getElementById('addr').innerText;
 
-  if(!address ||
-     address === 'Loading…' ||
-     address === 'Deposit address unavailable'){
+  if(
+    !address ||
+    address === 'Loading…' ||
+    address === 'Deposit address unavailable'
+  ){
 
     return;
 
@@ -608,7 +629,8 @@ async function copyAddress(){
 
   try{
 
-    await navigator.clipboard.writeText(address);
+    await navigator.clipboard
+      .writeText(address);
 
     alert('Deposit address copied.');
 
@@ -622,52 +644,245 @@ async function copyAddress(){
 
 
 /* =========================
-   DEPOSITS
+   GET DEPOSITS
 ========================= */
 
-async function deposits(){
+async function getDeposits(){
 
   try{
 
     const r =
       await fetch('/api/deposits');
 
+    if(!r.ok){
+      return [];
+    }
+
     const j =
       await r.json();
 
-    const d =
-      j.deposits || [];
+    return j.deposits || [];
 
-    let total = 0;
+  }catch(e){
 
-    d.forEach(x => {
+    return [];
 
-      const decimals =
-        Number(
-          x.token_info?.decimals ?? 6
-        );
+  }
 
-      total +=
-        Number(x.value || 0) /
-        (10 ** decimals);
-
-    });
-
-    document.getElementById('balance').textContent =
-      total.toFixed(6) + ' USDT';
+}
 
 
-    if(!d.length){
+/* =========================
+   GET WITHDRAWALS
+========================= */
 
-      document.getElementById('txs').innerHTML =
-        '<div class="empty">No confirmed deposits yet.</div>';
+async function getWithdrawals(){
 
-      return;
+  try{
+
+    const r =
+      await fetch('/api/withdrawals');
+
+    if(!r.ok){
+      return [];
+    }
+
+    const j =
+      await r.json();
+
+    return j.withdrawals || [];
+
+  }catch(e){
+
+    return [];
+
+  }
+
+}
+
+
+/* =========================
+   WITHDRAWAL AMOUNT
+========================= */
+
+function withdrawalAmount(x){
+
+  const amount =
+    Number(
+      x.amount ??
+      x.value ??
+      0
+    );
+
+  return Number.isFinite(amount)
+    ? amount
+    : 0;
+
+}
+
+
+/* =========================
+   SHOULD SUBTRACT
+========================= */
+
+function shouldSubtractWithdrawal(x){
+
+  const status =
+    String(
+      x.status ||
+      'pending'
+    ).toLowerCase();
+
+  /*
+    These statuses represent funds
+    that have been requested or used.
+  */
+
+  const subtractStatuses = [
+    'pending',
+    'processing',
+    'approved',
+    'queued',
+    'completed',
+    'success',
+    'confirmed'
+  ];
+
+  /*
+    Failed/rejected/cancelled withdrawals
+    should not reduce available balance.
+  */
+
+  const ignoreStatuses = [
+    'failed',
+    'rejected',
+    'cancelled',
+    'canceled',
+    'declined'
+  ];
+
+  if(ignoreStatuses.includes(status)){
+    return false;
+  }
+
+  return subtractStatuses.includes(status);
+
+}
+
+
+/* =========================
+   REFRESH WALLET
+========================= */
+
+async function refreshWallet(){
+
+  const depositsList =
+    await getDeposits();
+
+  const withdrawalsList =
+    await getWithdrawals();
+
+
+  let depositTotal = 0;
+
+  depositsList.forEach(x => {
+
+    const decimals =
+      Number(
+        x.token_info?.decimals ?? 6
+      );
+
+    const value =
+      Number(x.value || 0);
+
+    depositTotal +=
+      value / (10 ** decimals);
+
+  });
+
+
+  let reservedWithdrawals = 0;
+
+  withdrawalsList.forEach(x => {
+
+    if(
+      shouldSubtractWithdrawal(x)
+    ){
+
+      reservedWithdrawals +=
+        withdrawalAmount(x);
 
     }
 
+  });
 
-    const html = d.map(x => {
+
+  let available =
+    depositTotal -
+    reservedWithdrawals;
+
+
+  /*
+    Never display a negative
+    available test balance.
+  */
+
+  if(available < 0){
+    available = 0;
+  }
+
+
+  document.getElementById('balance')
+    .textContent =
+    available.toFixed(6) +
+    ' USDT';
+
+
+  if(reservedWithdrawals > 0){
+
+    document.getElementById('balanceNote')
+      .textContent =
+      reservedWithdrawals.toFixed(6) +
+      ' USDT reserved for withdrawal requests';
+
+  }else{
+
+    document.getElementById('balanceNote')
+      .textContent =
+      'No pending withdrawal amount';
+
+  }
+
+
+  renderRecentDeposits(
+    depositsList
+  );
+
+}
+
+
+/* =========================
+   RECENT DEPOSITS
+========================= */
+
+function renderRecentDeposits(d){
+
+  const area =
+    document.getElementById('txs');
+
+
+  if(!d.length){
+
+    area.innerHTML =
+      '<div class="empty">No confirmed deposits yet.</div>';
+
+    return;
+
+  }
+
+
+  area.innerHTML =
+    d.map(x => {
 
       const decimals =
         Number(
@@ -680,8 +895,11 @@ async function deposits(){
 
       const time =
         x.block_timestamp
-        ? new Date(x.block_timestamp).toLocaleString()
+        ? new Date(
+            x.block_timestamp
+          ).toLocaleString()
         : 'Unknown time';
+
 
       return `
 
@@ -701,47 +919,6 @@ async function deposits(){
 
     }).join('');
 
-    document.getElementById('txs').innerHTML =
-      html;
-
-  }catch(e){
-
-    document.getElementById('txs').innerHTML =
-      '<div class="empty">Blockchain check unavailable.</div>';
-
-  }
-
-}
-
-
-/* =========================
-   WITHDRAWALS
-========================= */
-
-async function getWithdrawals(){
-
-  try{
-
-    const r =
-      await fetch('/api/withdrawals');
-
-    if(!r.ok){
-
-      return [];
-
-    }
-
-    const j =
-      await r.json();
-
-    return j.withdrawals || [];
-
-  }catch(e){
-
-    return [];
-
-  }
-
 }
 
 
@@ -758,41 +935,17 @@ async function loadHistory(){
     '<p class="muted">Loading history…</p>';
 
 
-  let depositsList = [];
+  const depositsList =
+    await getDeposits();
 
-  let withdrawalsList = [];
-
-
-  /* Get deposits */
-
-  try{
-
-    const r =
-      await fetch('/api/deposits');
-
-    const j =
-      await r.json();
-
-    depositsList =
-      j.deposits || [];
-
-  }catch(e){
-
-    depositsList = [];
-
-  }
-
-
-  /* Get withdrawals */
-
-  withdrawalsList =
+  const withdrawalsList =
     await getWithdrawals();
 
 
   let transactions = [];
 
 
-  /* Add deposits */
+  /* DEPOSITS */
 
   depositsList.forEach(x => {
 
@@ -805,16 +958,19 @@ async function loadHistory(){
       Number(x.value || 0) /
       (10 ** decimals);
 
+    const timestampValue =
+      x.block_timestamp ||
+      null;
+
+    const timestamp =
+      timestampValue
+      ? new Date(timestampValue).getTime()
+      : 0;
+
+
     transactions.push({
 
-      type:'deposit',
-
-      amount:amount,
-
-      timestamp:
-        x.block_timestamp
-        ? new Date(x.block_timestamp).getTime()
-        : 0,
+      timestamp:timestamp,
 
       html:`
 
@@ -830,9 +986,11 @@ async function loadHistory(){
 
           <div class="tx-detail">
             ${
-              x.block_timestamp
-              ? new Date(x.block_timestamp).toLocaleString()
-              : 'Unknown time'
+              timestampValue
+              ? new Date(
+                  timestampValue
+                ).toLocaleString()
+              : 'Time unavailable'
             }
           </div>
 
@@ -845,16 +1003,12 @@ async function loadHistory(){
   });
 
 
-  /* Add withdrawals */
+  /* WITHDRAWALS */
 
   withdrawalsList.forEach(x => {
 
     const amount =
-      Number(
-        x.amount ??
-        x.value ??
-        0
-      );
+      withdrawalAmount(x);
 
     const destination =
       x.destination ||
@@ -877,11 +1031,8 @@ async function loadHistory(){
       ? new Date(timestampValue).getTime()
       : 0;
 
+
     transactions.push({
-
-      type:'withdrawal',
-
-      amount:amount,
 
       timestamp:timestamp,
 
@@ -898,7 +1049,9 @@ async function loadHistory(){
           </div>
 
           <div class="status">
-            ${escapeHtml(String(status))}
+            ${escapeHtml(
+              String(status)
+            )}
           </div>
 
           <div class="tx-detail">
@@ -906,13 +1059,17 @@ async function loadHistory(){
           </div>
 
           <div class="small">
-            ${escapeHtml(String(destination))}
+            ${escapeHtml(
+              String(destination)
+            )}
           </div>
 
           <div class="tx-detail">
             ${
               timestampValue
-              ? new Date(timestampValue).toLocaleString()
+              ? new Date(
+                  timestampValue
+                ).toLocaleString()
               : 'Time unavailable'
             }
           </div>
@@ -926,7 +1083,7 @@ async function loadHistory(){
   });
 
 
-  /* Sort newest first */
+  /* NEWEST FIRST */
 
   transactions.sort(
     (a,b) =>
@@ -980,9 +1137,15 @@ function go(id,el){
       x.classList.remove('on')
     );
 
-  document
-    .getElementById(id)
-    .classList.add('on');
+
+  const page =
+    document.getElementById(id);
+
+  if(page){
+
+    page.classList.add('on');
+
+  }
 
 
   if(el){
@@ -1001,6 +1164,13 @@ function go(id,el){
   if(id === 'history'){
 
     loadHistory();
+
+  }
+
+
+  if(id === 'home'){
+
+    refreshWallet();
 
   }
 
@@ -1056,6 +1226,69 @@ async function withdraw(){
   }
 
 
+  /*
+    Check current available
+    test balance before submitting.
+  */
+
+  const depositsList =
+    await getDeposits();
+
+  const withdrawalsList =
+    await getWithdrawals();
+
+
+  let depositsTotal = 0;
+
+  depositsList.forEach(x => {
+
+    const decimals =
+      Number(
+        x.token_info?.decimals ?? 6
+      );
+
+    depositsTotal +=
+      Number(x.value || 0) /
+      (10 ** decimals);
+
+  });
+
+
+  let reserved = 0;
+
+  withdrawalsList.forEach(x => {
+
+    if(
+      shouldSubtractWithdrawal(x)
+    ){
+
+      reserved +=
+        withdrawalAmount(x);
+
+    }
+
+  });
+
+
+  const available =
+    Math.max(
+      0,
+      depositsTotal - reserved
+    );
+
+
+  if(amount > available){
+
+    msg.className = 'error';
+
+    msg.textContent =
+      'Insufficient available test balance.';
+
+    return;
+
+  }
+
+
   msg.className = 'muted';
 
   msg.textContent =
@@ -1070,7 +1303,8 @@ async function withdraw(){
         method:'POST',
 
         headers:{
-          'Content-Type':'application/json'
+          'Content-Type':
+          'application/json'
         },
 
         body:JSON.stringify({
@@ -1109,9 +1343,19 @@ async function withdraw(){
       'Withdrawal request created and saved as pending.';
 
 
-    document.getElementById('amt').value = '';
-    document.getElementById('dest').value = '';
+    document.getElementById('amt')
+      .value = '';
 
+    document.getElementById('dest')
+      .value = '';
+
+
+    /*
+      Immediately refresh the
+      available test balance and history.
+    */
+
+    await refreshWallet();
 
     await loadHistory();
 
@@ -1135,9 +1379,22 @@ checkAuth();
 
 load();
 
-setInterval(deposits,15000);
 
-setInterval(loadHistory,15000);
+/*
+  Refresh blockchain deposits,
+  withdrawals and balance every
+  15 seconds.
+*/
+
+setInterval(
+  refreshWallet,
+  15000
+);
+
+setInterval(
+  loadHistory,
+  15000
+);
 
 </script>
 
